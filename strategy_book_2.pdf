@@ -1,0 +1,42 @@
+DERIV WORM STRATEGY RULESET
+
+This document contains the complete logic for the V3 Worm Engine.
+
+CORE PRINCIPLE:
+The main goal is to identify the dominant trend (UP or DOWN) based on the sequence of even and odd digits and their relationship to visual levels.
+
+RULE 1: DIFFERENCE OF 1
+This is the most fundamental rule. It triggers when two consecutive digits have a difference of 1 unit, including the wrap-around from 9 to 0.
+Example: 7 followed by 8, or 2 followed by 1.
+If the second digit is higher, the signal is UP.
+If the second digit is lower, the signal is DOWN.
+
+RULE 2: DOMINANT EVEN/ODD
+This rule analyzes the last 7 digits to see if even or odd numbers are dominant.
+If even numbers are significantly more frequent than odd numbers, the signal is UP.
+If odd numbers are significantly more frequent than even numbers, the signal is DOWN.
+
+RULE 3: BREAKOUT
+This rule identifies when the latest digit breaks out of the high or low of the last 5 digits.
+If the latest digit is the highest in the last 5, the signal is UP.
+If the latest digit is the lowest in the last 5, the signal is DOWN.
+
+RULE 4: VISUAL ZERO AND ANOMALY
+This is a more advanced rule. It visualizes digits in space and compares them against a central "zero" level.
+An anomaly is when a sequence of digits (e.g., 7, 5, 3) falls instead of rises (for blue numbers).
+If an anomaly is detected and breaks a level, the trend may reverse.
+Example: A sequence 7 (blue), 5 (blue), 4 (red) is a falling anomaly. The next step determines the direction.
+
+RULE 5: FIVE-TICK PREDICTION
+The engine's predictions are evaluated over the next 5 ticks to determine their accuracy (WIN or LOSS).
+This is not a direct signal rule but a core part of the learning mechanism.
+
+EXECUTION LOGIC:
+The engine prioritizes rules in this order:
+1. Exact PDF mappings (if provided).
+2. Difference of 1.
+3. Breakout.
+4. Dominant Even/Odd.
+5. Momentum and Frequency Analysis.
+
+Always be attentive to the trend movement and comply with all rules for success.

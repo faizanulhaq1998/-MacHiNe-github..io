@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Deriv Worm Engine V3 — Stellar Interface</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e27;
+      --bg-secondary: #151932;
+      --card-bg: rgba(21, 25, 50, 0.75);
+      --card-border: rgba(100, 200, 255, 0.3);
+      --accent-cyan: #00d4ff;
+      --accent-purple: #b366ff;
+      --accent-green: #00ff88;
+      --accent-red: #ff4757;
+      --text-primary: #e0e6ed;
+      --text-muted: #8892b0;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.5);
+      --glow-purple: 0 0 20px rgba(179, 102, 255, 0.5);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated Starfield Background */
+    #starfield {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+    }
+
+    .wrap {
+      max-width: 1500px;
+      margin: 20px auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 25px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), var(--glow-purple);
+    }
+
+    h2 {
+      margin: 0 0 15px;
+      font-size: 20px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: var(--glass-bg);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* 3D Buttons */
+    .btn-3d {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      position: relative;
+      color: #fff;
+      transition: all 0.15s ease;
+      box-shadow: 0 6px 0 #0a3d62, 0 8px 10px rgba(0,0,0,0.3);
+    }
+    .btn-3d:hover { transform: translateY(2px); box-shadow: 0 4px 0 #0a3d62, 0 6px 8px rgba(0,0,0,0.3); }
+    .btn-3d:active { transform: translateY(4px); box-shadow: 0 2px 0 #0a3d62, 0 3px 5px rgba(0,0,0,0.3); }
+    .btn-3d:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 0 2px 0 #0a3d62, 0 3px 5px rgba(0,0,0,0.3); }
+
+    .btn-cyan { background: linear-gradient(145deg, #00d4ff, #0099cc); box-shadow: 0 6px 0 #007399, 0 8px 10px rgba(0,0,0,0.3); }
+    .btn-cyan:hover { box-shadow: 0 4px 0 #007399, 0 6px 8px rgba(0,0,0,0.3); }
+    .btn-cyan:active { box-shadow: 0 2px 0 #007399, 0 3px 5px rgba(0,0,0,0.3); }
+
+    .btn-purple { background: linear-gradient(145deg, #b366ff, #8b44d9); box-shadow: 0 6px 0 #6c2fb8, 0 8px 10px rgba(0,0,0,0.3); }
+    .btn-purple:hover { box-shadow: 0 4px 0 #6c2fb8, 0 6px 8px rgba(0,0,0,0.3); }
+    .btn-purple:active { box-shadow: 0 2px 0 #6c2fb8, 0 3px 5px rgba(0,0,0,0.3); }
+
+    .btn-green { background: linear-gradient(145deg, #00ff88, #00cc6a); box-shadow: 0 6px 0 #009950, 0 8px 10px rgba(0,0,0,0.3); }
+    .btn-green:hover { box-shadow: 0 4px 0 #009950, 0 6px 8px rgba(0,0,0,0.3); }
+    .btn-green:active { box-shadow: 0 2px 0 #009950, 0 3px 5px rgba(0,0,0,0.3); }
+
+    .btn-red { background: linear-gradient(145deg, #ff4757, #cc2e3f); box-shadow: 0 6px 0 #991f2c, 0 8px 10px rgba(0,0,0,0.3); }
+    .btn-red:hover { box-shadow: 0 4px 0 #991f2c, 0 6px 8px rgba(0,0,0,0.3); }
+    .btn-red:active { box-shadow: 0 2px 0 #991f2c, 0 3px 5px rgba(0,0,0,0.3); }
+
+    #wormCanvas {
+      width: 100%;
+      height: 140px;
+      border-radius: 8px;
+      background: var(--glass-bg);
+      display: block;
+      border: 1px solid var(--card-border);
+    }
+
+    .signal {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
+    }
+    .signal-status { font-size: 18px; }
+    .green { color: var(--accent-green); text-shadow: 0 0 10px var(--accent-green); }
+    .red { color: var(--accent-red); text-shadow: 0 0 10px var(--accent-red); }
+    .neutral { color: var(--text-muted); }
+
+    .logs {
+      height: 220px;
+      overflow: auto;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      border: 1px solid var(--card-border);
+    }
+    .logs::-webkit-scrollbar { width: 8px; }
+    .logs::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    .logs::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 4px; }
+
+    .digits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .digit-pill {
+      min-width: 30px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
+      background: var(--glass-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+    }       /* Add this new style for the book content */
+    .book-content {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text-muted);
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .book-content h3 {
+        font-family: 'Orbitron', sans-serif;
+        color: var(--accent-cyan);
+        margin-top: 20px;
+        border-bottom: 1px solid var(--card-border);
+        padding-bottom: 5px;
+    }
+    .book-content p {
+        margin-bottom: 15px;
+    }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .stat-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+    }
+    .stat-card .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        font-family: 'Orbitron', sans-serif;
+        margin: 5px 0;
+    }
+    .stat-card .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+    .balance { color: var(--accent-cyan); }
+    .profit { color: var(--accent-green); }
+    .loss { color: var(--accent-red); }
+    .winrate { color: var(--accent-purple); }
+
+    .rule-performance-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .rule-performance-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background: var(--glass-bg);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border-left: 4px solid var(--accent-cyan);
+    }
+    .rule-name { font-weight: 600; font-family: 'Orbitron', sans-serif; font-size: 13px; }
+    .rule-stats { display: flex; gap: 15px; font-size: 12px; }
+    .rule-stats .wins { color: var(--accent-green); }
+    .rule-stats .losses { color: var(--accent-red); }
+    .rule-stats .weight { color: var(--accent-purple); }
+
+    .small { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .checkbox-wrapper input[type="checkbox"] {
+        width: auto;
+        cursor: pointer;
+    }
+
+    /* Trade History Table */
+    .trade-history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 13px;
+    }
+    .trade-history-table th, .trade-history-table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--card-border);
+    }
+    .trade-history-table th {
+        font-family: 'Orbitron', sans-serif;
+        color: var(--accent-cyan);
+        text-transform: uppercase;
+    }
+    .trade-history-table .win { color: var(--accent-green); }
+    .trade-history-table .loss { color: var(--accent-red); }
+
+  </style>
+</head>
+<body>
+
+  <canvas id="starfield"></canvas>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>Strategy Core</h2>
+      <label>Upload Strategy PDF</label>
+      <input id="pdfFile" type="file" accept="application/pdf" />
+      <div class="row">
+        <div class="checkbox-wrapper">
+            <input id="autoApplyPdf" type="checkbox" />
+            <label for="autoApplyPdf" style="margin-top:0;">Auto-activate</label>
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnParsePdf" class="btn-3d btn-purple">Parse PDF</button>
+        <button id="btnApplyPdf" class="btn-3d btn-cyan">Apply Rules</button>
+      </div>
+      <pre id="pdfPreview" class="logs" style="height:120px"></pre>
+      <hr style="margin:15px 0; border: 1px solid var(--card-border);"/>
+      <h2>Connection</h2>
+      <label>Deriv API Token</label>
+      <input id="apiToken" placeholder="Enter Deriv DEMO Token" />
+      <label>Server</label>
+      <select id="server"><option value="wss://ws.binaryws.com/websockets/v3?app_id=1089">Deriv Public (v3)</option></select>
+      <div class="row">
+        <button id="btnConnect" class="btn-3d btn-green">Connect</button>
+        <button id="btnAuthorize" class="btn-3d btn-cyan">Authorize</button>
+        <button id="btnDisconnect" class="btn-3d btn-red">Disconnect</button>
+      </div>
+      <hr style="margin:15px 0; border: 1px solid var(--card-border);"/>
+      <h2>Live Signals</h2>
+      <div class="signal">Status: <span id="signalLabel" class="signal-status neutral">Disconnected</span></div>
+      <canvas id="wormCanvas"></canvas>
+      <div style="margin-top:15px; font-family: 'Orbitron', sans-serif; font-size:14px;">
+        Prev: <span id="prevDigit">-</span> · Curr: <span id="currDigit">-</span> · Worm: <span id="wormVal">-</span><br>
+        Prediction: <span id="predDigit" class="neutral">-</span> (<span id="predConf">-</span>%)<br>
+        5-Tick Suggestion: <span id="suggested5" class="neutral">-</span>
+      </div>
+      <div class="digits" id="recentDigits"></div>
+      <div class="small">Hint: Use "Parse PDF" to import rules, then "Apply Rules".</div>
+    </div>
+    <!-- Add this new card for Book Details -->      
+    <div class="card">
+      <h2>Strategy Book Details</h2>
+      <div id="bookDetailsContent" class="book-content">
+        <p>Parse a strategy book PDF to see a summary of the rules here.</p>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Performance Dashboard</h2>
+      <div class="dashboard-grid">
+        <div class="stat-card">
+            <div class="stat-label">Demo Balance</div>
+            <div id="demoBalance" class="stat-value balance">$10,000.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total P/L</div>
+            <div id="totalPL" class="stat-value profit">$0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Win Rate</div>
+            <div id="winRate" class="stat-value winrate">0%</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Trades</div>
+            <div id="totalTrades" class="stat-value">0</div>
+        </div>
+      </div>
+      
+      <h2 style="margin-top:20px;">Rule Performance</h2>
+      <ul id="rulePerformanceList" class="rule-performance-list">
+          <!-- Rule performance will be injected here -->
+      </ul>
+
+      <h2 style="margin-top:20px;">Trade History</h2>
+            <h2 style="margin-top:20px;">Trade History</h2>
+      <table class="trade-history-table">
+        <thead>
+            <tr>
+                <th>Start Time</th>
+                <th>Duration</th>
+                <th>Contract ID</th>
+                <th>Type</th>
+                <th>Profit/Loss</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody id="tradeHistoryBody">
+            <!-- Trade history will be injected here -->
+        </tbody>
+      </table>
+
+      <h2 style="margin-top:20px;">Activity Logs</h2>
+      <div class="logs" id="log"></div>
+    </div>
+  </div>
+
+<!-- Load PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
+  if(window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  }
+</script>
+
+<!-- Starfield Animation -->
+<script>
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    const numStars = 250;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Star {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.z = Math.random() * 1000;
+            this.prevX = this.x;
+            this.prevY = this.y;
+        }
+        update(speed) {
+            this.prevX = this.x / (this.z * 0.001);
+            this.prevY = this.y / (this.z * 0.001);
+            this.z -= speed;
+            if (this.z <= 0) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.z = 1000;
+                this.prevX = this.x;
+                this.prevY = this.y;
+            }
+        }
+        draw() {
+            const x = (this.x - canvas.width / 2) / (this.z * 0.001) + canvas.width / 2;
+            const y = (this.y - canvas.height / 2) / (this.z * 0.001) + canvas.height / 2;
+            const prevX = (this.prevX - canvas.width / 2) + canvas.width / 2;
+            const prevY = (this.prevY - canvas.height / 2) + canvas.height / 2;
+            
+            const size = (1 - this.z / 1000) * 2;
+            const opacity = 1 - this.z / 1000;
+
+            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.lineWidth = size;
+            ctx.beginPath();
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+    }
+
+    for (let i = 0; i < numStars; i++) {
+        stars.push(new Star());
+    }
+
+    function animateStarfield() {
+        ctx.fillStyle = 'rgba(10, 14, 39, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(star => {
+            star.update(5);
+            star.draw();
+        });
+        requestAnimationFrame(animateStarfield);
+    }
+    animateStarfield();
+      
+</script>
+<!-- Engine script -->
+<script src="v3_engine_full_fixed.js"></script>
+           <!-- UI Wiring (with safety check) -->
+<script>
+(function(){
+    // Wait a moment to ensure the engine script has fully loaded.
+    setTimeout(function() {
+        
+        const $ = id => document.getElementById(id);
+        const logEl = $('log');
+        function addLogUI(m){
+            if(!logEl) return console.log(m);
+            const t = new Date().toLocaleTimeString();
+            logEl.textContent = `[${t}] ${m}\n` + logEl.textContent;
+        }
+
+        // Parse PDF
+        const btnParsePdf = $('btnParsePdf');
+        if(btnParsePdf) {
+            btnParsePdf.onclick = async function(){
+                const f = $('pdfFile').files && $('pdfFile').files[0];
+                if(!f){ addLogUI('No PDF selected'); return; }
+                try{
+                    addLogUI('Parsing PDF...');
+                    const parsed = await window.parsePdfAndBuild(f);
+                    const pdfPreview = $('pdfPreview');
+                    if(pdfPreview) pdfPreview.textContent = parsed.rawText ? parsed.rawText.slice(0,2000) : 'No text parsed';
+                    addLogUI('Parsed rules: ' + (parsed.rules? parsed.rules.length : 0));
+                    const autoApplyPdf = $('autoApplyPdf');
+                    if(autoApplyPdf && autoApplyPdf.checked){ 
+                        window.applyParsedPdf(); 
+                        addLogUI('Auto-applied parsed PDF rules'); 
+                    }
+                }catch(e){ addLogUI('PDF parse error: ' + (e.message||e)); }
+            };
+        }
+
+        // Apply rules
+        const btnApplyPdf = $('btnApplyPdf');
+        if(btnApplyPdf) {
+            btnApplyPdf.onclick = function(){
+                try{
+                    window.applyParsedPdf({ strict:false });
+                    addLogUI('Applied parsed PDF rules (strict=false)');
+                }catch(e){ addLogUI('Apply error: ' + (e.message||e)); }
+            };
+        }
+
+        // Connection
+        const btnConnect = $('btnConnect');
+        if(btnConnect) {
+            btnConnect.onclick = function(){
+                const server = $('server').value;
+                try{ 
+                    window.derivConnect(server); 
+                    addLogUI('Connecting to ' + server); 
+                    const signalLabel = $('signalLabel');
+                    if(signalLabel) {
+                        signalLabel.textContent = 'Connected (pending auth)'; 
+                        signalLabel.className='signal-status neutral'; 
+                    }
+                }catch(e){ addLogUI('Connect err: ' + e.message); }
+            };
+        }
+
+        const btnAuthorize = $('btnAuthorize');
+        if(btnAuthorize) {
+            btnAuthorize.onclick = function(){
+                const token = $('apiToken').value.trim();
+                if(!token){ addLogUI('No token provided'); return; }
+                try{ 
+                    window.derivAuthorize(token); 
+                    addLogUI('Sent authorize request'); 
+                }catch(e){ addLogUI('Auth err: ' + e.message); }
+            };
+        }
+        
+        const btnDisconnect = $('btnDisconnect');
+        if(btnDisconnect) {
+            btnDisconnect.onclick = function(){
+                try{ 
+                    if(window.ws) window.ws.close(); 
+                    addLogUI('WS closed'); 
+                    const signalLabel = $('signalLabel');
+                    if(signalLabel) signalLabel.textContent = 'Disconnected'; 
+                }catch(e){ addLogUI('Disconnect err'); }
+            };
+        }
+
+        // Hook into engine logging
+        const originalAddLog = window.addLog || function(m){ addLogUI(m); };
+        window.addLog = function(m){
+            try{ addLogUI(m); }catch(e){}
+            try{ originalAddLog(m); }catch(e){}
+        };
+
+        // Periodic UI Updates
+        setInterval(function(){
+            try{
+                const engine = window._engine;
+                if(!engine) return;
+                const state = engine.getState();
+                const recent = state.recentDigits.slice(-40);
+                const container = $('recentDigits');
+                if(container) {
+                    container.innerHTML = '';
+                    recent.forEach(d=>{
+                        const el = document.createElement('div');
+                        el.className = 'digit-pill';
+                        el.textContent = d;
+                        container.appendChild(el);
+                    });
+                }
+                const last = recent[recent.length-1];
+                const prev = recent[recent.length-2];
+                const prevDigitEl = $('prevDigit');
+                const currDigitEl = $('currDigit');
+                if(prevDigitEl) prevDigitEl.textContent = (typeof prev === 'undefined')? '-' : prev;
+                if(currDigitEl) currDigitEl.textContent = (typeof last === 'undefined')? '-' : last;
+                
+                if(engineState && engineState.lastPrediction) {
+                    const pred = engineState.lastPrediction.decision;
+                    const predDigitEl = $('predDigit');
+                    if(predDigitEl) {
+                        predDigitEl.textContent = pred || '-';
+                        predDigitEl.className = `signal-status ${pred === 'UP' ? 'green' : pred === 'DOWN' ? 'red' : 'neutral'}`;
+                    }
+                    const predConfEl = $('predConf');
+                    if(predConfEl) predConfEl.textContent = engineState.lastPrediction.confidence || '-';
+                }
+            }catch(e){ console.error("UI Update Error:", e); }
+
+            // Update Performance Dashboard
+            try{
+                const state = window._engine.getState();
+                const risk = state.risk;
+
+                // Update Balance and P/L
+                const initialBalance = 10000;
+                const currentBalance = initialBalance + risk.sessionPL;
+                const demoBalanceEl = $('demoBalance');
+                if(demoBalanceEl) demoBalanceEl.textContent = `$${currentBalance.toFixed(2)}`;
+                
+                const totalPLEl = $('totalPL');
+                if(totalPLEl) {
+                    totalPLEl.textContent = `$${risk.sessionPL.toFixed(2)}`;
+                    totalPLEl.className = `stat-value ${risk.sessionPL >= 0 ? 'profit' : 'loss'}`;
+                }
+          
+                // Update Trade Count
+                const totalTradesEl = $('totalTrades');
+                if(totalTradesEl) totalTradesEl.textContent = risk.tradeCount;
+
+                // Update Win Rate
+                const ruleWeights = state.ruleWeights;
+                let totalWins = 0, totalLosses = 0;
+                for(const ruleId in ruleWeights){
+                    totalWins += ruleWeights[ruleId].wins;
+                    totalLosses += ruleWeights[ruleId].losses;
+                }
+                const winRate = (totalWins + totalLosses) > 0 ? ((totalWins / (totalWins + totalLosses)) * 100).toFixed(1) : 0;
+                const winRateEl = $('winRate');
+                if(winRateEl) winRateEl.textContent = `${winRate}%`;
+
+                // Update Rule Performance List
+                const listEl = $('rulePerformanceList');
+                if(listEl) {
+                    listEl.innerHTML = '';
+                    for(const ruleId in ruleWeights){
+                        const meta = ruleWeights[ruleId];
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span class="rule-name">${ruleId}</span>
+                            <div class="rule-stats">
+                                <span class="wins">W: ${meta.wins}</span>
+                                <span class="losses">L: ${meta.losses}</span>
+                                <span class="weight">Wgt: ${(meta.weight * 100).toFixed(0)}%</span>
+                            </div>
+                        `;
+                        listEl.appendChild(li);
+                    }
+                    if(Object.keys(ruleWeights).length === 0){
+                        listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted);">No rule data yet...</li>';
+                    }
+                }
+            }catch(e){ console.error("Dashboard Update Error:", e); }
+
+        }, 1000);
+
+        addLogUI('Stellar Interface wired. Ready.');
+
+    }, 500); // Wait 500ms before running UI code
+})();
+</script>
+
+</body>
+</html>
